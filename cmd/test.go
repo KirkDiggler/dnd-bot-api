@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"context"
+	"log/slog"
+
 	dndbotv1alpha1api "github.com/KirkDiggler/dnd-bot-api/protos/gen-external/go/api/admin"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
-	"log/slog"
 )
 
 var testCommand = &cobra.Command{
@@ -23,8 +24,24 @@ var testCommand = &cobra.Command{
 
 		client := dndbotv1alpha1api.NewAminAPIClient(conn)
 
-		result, err := client.ListRooms(ctx, &dndbotv1alpha1api.ListRoomsRequest{
-			Name: "bob",
+		result, err := client.CreateRoom(ctx, &dndbotv1alpha1api.CreateRoomRequest{
+			Room: &dndbotv1alpha1api.Room{
+				Id:          "1",
+				Name:        "bob",
+				Description: "bob likes turtles",
+			},
+		})
+
+		if err != nil {
+			panic(err)
+
+			return
+		}
+
+		slog.Info("create returned successfully: ", result)
+
+		getResult, err := client.GetRoom(ctx, &dndbotv1alpha1api.GetRoomRequest{
+			Id: "1",
 		})
 		if err != nil {
 			panic(err)
@@ -32,7 +49,8 @@ var testCommand = &cobra.Command{
 			return
 		}
 
-		slog.Info("result returned successfully: ", result)
+		slog.Info("get returned successfully", getResult)
+
 	},
 }
 
