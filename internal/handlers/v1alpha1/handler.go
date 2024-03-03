@@ -3,6 +3,7 @@ package v1alpha1
 import (
 	"context"
 	"errors"
+	"github.com/KirkDiggler/dnd-bot-api/internal/entities"
 	"github.com/KirkDiggler/dnd-bot-api/internal/repositories/rooms"
 	dndbotv1alpha1api "github.com/KirkDiggler/dnd-bot-api/protos/gen-external/go/api/admin"
 	"log/slog"
@@ -67,7 +68,32 @@ func (h *Handler) ListRooms(ctx context.Context, req *dndbotv1alpha1api.ListRoom
 
 func (h *Handler) CreateRoom(ctx context.Context, req *dndbotv1alpha1api.CreateRoomRequest) (*dndbotv1alpha1api.CreateRoomResponse, error) {
 	slog.Info("CreateRoom")
-	return nil, errors.New("not implemented")
+	if req == nil {
+		return nil, errors.New("req is required")
+	}
+
+	if req.Room == nil {
+		return nil, errors.New("req.Room is required")
+	}
+
+	if req.Room.Id == "" {
+		return nil, errors.New("req.Room.Id is required")
+	}
+
+	if req.Room.Name == "" {
+		return nil, errors.New("req.Room.Name is required")
+	}
+
+	err := h.roomRepo.CreateRoom(ctx, &entities.Room{
+		ID:          req.Room.Id,
+		Name:        req.Room.Name,
+		Description: req.Room.Description,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &dndbotv1alpha1api.CreateRoomResponse{}, nil
 }
 
 func (h *Handler) UpdateRoom(ctx context.Context, req *dndbotv1alpha1api.UpdateRoomRequest) (*dndbotv1alpha1api.UpdateRoomResponse, error) {
