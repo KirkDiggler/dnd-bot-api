@@ -61,13 +61,7 @@ func (r *Redis) ListRooms(ctx context.Context) ([]*entities.Room, error) {
 	return rooms, nil
 }
 
-func (r *Redis) GetRoom(ctx context.Context, id string) (*entities.Room, error) {
-	if id == "" {
-		return nil, errors.New("id is required")
-	}
-
-	roomKey := getRoomKey(id)
-
+func (r *Redis) doGet(ctx context.Context, roomKey string) (*entities.Room, error) {
 	roomJson, err := r.client.Get(ctx, roomKey).Result()
 	if err != nil {
 		return nil, err
@@ -80,6 +74,16 @@ func (r *Redis) GetRoom(ctx context.Context, id string) (*entities.Room, error) 
 	}
 
 	return out, nil
+}
+
+func (r *Redis) GetRoom(ctx context.Context, id string) (*entities.Room, error) {
+	if id == "" {
+		return nil, errors.New("id is required")
+	}
+
+	roomKey := getRoomKey(id)
+
+	return r.doGet(ctx, roomKey)
 }
 
 func (r *Redis) CreateRoom(ctx context.Context, room *entities.Room) error {
