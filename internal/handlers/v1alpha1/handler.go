@@ -3,10 +3,11 @@ package v1alpha1
 import (
 	"context"
 	"errors"
+	"log/slog"
+
 	"github.com/KirkDiggler/dnd-bot-api/internal/entities"
 	"github.com/KirkDiggler/dnd-bot-api/internal/repositories/rooms"
 	dndbotv1alpha1api "github.com/KirkDiggler/dnd-bot-api/protos/gen-external/go/api/admin"
-	"log/slog"
 )
 
 type Handler struct {
@@ -56,13 +57,23 @@ func (h *Handler) GetRoom(ctx context.Context, req *dndbotv1alpha1api.GetRoomReq
 
 func (h *Handler) ListRooms(ctx context.Context, req *dndbotv1alpha1api.ListRoomsRequest) (*dndbotv1alpha1api.ListRoomsResponse, error) {
 	slog.Info("ListRooms")
+
+	roomsData, err := h.roomRepo.ListRooms(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	roomProtos := make([]*dndbotv1alpha1api.Room, 0, len(roomsData))
+	for _, room := range roomsData {
+		roomProtos = append(roomProtos, &dndbotv1alpha1api.Room{
+			Id:          room.ID,
+			Name:        room.Name,
+			Description: room.Description,
+		})
+	}
+
 	return &dndbotv1alpha1api.ListRoomsResponse{
-		Rooms: []*dndbotv1alpha1api.Room{
-			{
-				Id:   "1",
-				Name: "room1",
-			},
-		},
+		Rooms: roomProtos,
 	}, nil
 }
 
@@ -76,8 +87,8 @@ func (h *Handler) CreateRoom(ctx context.Context, req *dndbotv1alpha1api.CreateR
 		return nil, errors.New("req.Room is required")
 	}
 
-	if req.Room.Id == "" {
-		return nil, errors.New("req.Room.Id is required")
+	if req.Room.Id != "" {
+		return nil, errors.New("req.Room.Id cannot be set on create")
 	}
 
 	if req.Room.Name == "" {
