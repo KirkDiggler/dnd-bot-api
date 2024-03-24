@@ -1,5 +1,9 @@
 name: Go
-on: [push]
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build-and-test:
@@ -8,9 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Setup Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: '1.22.x'
+          go-version: '1.22'
       - name: Install dependencies
         run: go get .
       - name: Build
