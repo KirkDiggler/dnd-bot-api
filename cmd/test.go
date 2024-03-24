@@ -56,6 +56,19 @@ var testCommand = &cobra.Command{
 			}
 
 			slog.Info("get returned successfully", "getResult", getResult)
+
+			updateResult, err := client.UpdateRoom(ctx, &dndbotv1alpha1api.UpdateRoomRequest{
+				Room: &dndbotv1alpha1api.Room{
+					Id:          getResult.Room.Id,
+					Name:        "Google",
+					Description: "Google like uuids",
+				},
+			})
+			if err != nil {
+				panic(err)
+			}
+
+			slog.Info("update returned successfully", "updateResult", updateResult)
 		}
 	},
 }
