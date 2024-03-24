@@ -109,7 +109,37 @@ func (h *Handler) CreateRoom(ctx context.Context, req *dndbotv1alpha1api.CreateR
 
 func (h *Handler) UpdateRoom(ctx context.Context, req *dndbotv1alpha1api.UpdateRoomRequest) (*dndbotv1alpha1api.UpdateRoomResponse, error) {
 	slog.Info("UpdateRoom")
-	return nil, errors.New("not implemented")
+	if req == nil {
+		return nil, errors.New("req is required")
+	}
+
+	if req.Room == nil {
+		return nil, errors.New("req.Room is required")
+	}
+
+	if req.Room.Id == "" {
+		return nil, errors.New("req.Room.Id is required")
+	}
+
+	result, err := h.roomRepo.UpdateRoom(ctx, &rooms.UpdateInput{
+		Room: &entities.Room{
+			ID:          req.Room.Id,
+			Name:        req.Room.Name,
+			Description: req.Room.Description,
+		},
+		InputMask: []string{"name"},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &dndbotv1alpha1api.UpdateRoomResponse{
+		Room: &dndbotv1alpha1api.Room{
+			Id:          result.Room.ID,
+			Name:        result.Room.Name,
+			Description: result.Room.Description,
+		},
+	}, nil
 }
 
 func (h *Handler) DeleteRoom(ctx context.Context, req *dndbotv1alpha1api.DeleteRoomRequest) (*dndbotv1alpha1api.DeleteRoomResponse, error) {
