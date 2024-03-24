@@ -61,19 +61,72 @@ func (r *Redis) ListRooms(ctx context.Context) ([]*entities.Room, error) {
 	return rooms, nil
 }
 
-func (r *Redis) doGet(ctx context.Context, roomKey string) (*entities.Room, error) {
+func (r *Redis) doGet(ctx context.Context, roomKey string) (string, error) {
 	roomJson, err := r.client.Get(ctx, roomKey).Result()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	out := &entities.Room{}
-	err = json.Unmarshal([]byte(roomJson), out)
+	return roomJson, nil
+}
+
+func (r *Redis) UpdateRoom(ctx context.Context, input *UpdateInput) (*UpdateOutput, error) {
+	if input == nil {
+		return nil, errors.New("input is required")
+	}
+
+	if input.Room == nil {
+		return nil, errors.New("input.Room is required")
+	}
+
+	if len(input.InputMask) == 0 {
+		return nil, errors.New("input.InputMask is required")
+	}
+
+	roomKey := getRoomKey(input.Room.ID)
+
+	inputJson, err := json.Marshal(input.Room)
 	if err != nil {
 		return nil, err
 	}
 
-	return out, nil
+	inputMap := make(map[string]interface{})
+	err = json.Unmarshal(inputJson, &inputMap)
+	if err != nil {
+		return nil, err
+	}
+
+	roomJson, err := r.doGet(ctx, roomKey)
+	if err != nil {
+		return nil, err
+	}
+
+	roomMap := make(map[string]interface{})
+	err = json.Unmarshal([]byte(roomJson), &roomMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, key := range input.InputMask {
+		roomMap[key] = inputMap[key]
+	}
+
+	inputJson, err = json.Marshal(roomMap)
+	if err != nil {
+		return nil, err
+	}
+
+	r.client.Set(ctx, roomKey, string(inputJson), 0)
+
+	output := &entities.Room{}
+	err = json.Unmarshal(inputJson, output)
+	if err != nil {
+		return nil, err
+	}
+
+	return &UpdateOutput{
+		Room: output,
+	}, nil
 }
 
 func (r *Redis) GetRoom(ctx context.Context, id string) (*entities.Room, error) {
@@ -83,7 +136,18 @@ func (r *Redis) GetRoom(ctx context.Context, id string) (*entities.Room, error) 
 
 	roomKey := getRoomKey(id)
 
-	return r.doGet(ctx, roomKey)
+	roomJson, err := r.doGet(ctx, roomKey)
+	if err != nil {
+		return nil, err
+	}
+
+	room := &entities.Room{}
+	err = json.Unmarshal([]byte(roomJson), room)
+	if err != nil {
+		return nil, err
+	}
+
+	return room, nil
 }
 
 func (r *Redis) CreateRoom(ctx context.Context, room *entities.Room) error {

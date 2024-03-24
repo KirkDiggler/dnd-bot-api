@@ -38,17 +38,6 @@ var testCommand = &cobra.Command{
 
 		slog.Info("create returned successfully: ", "result", result)
 
-		getResult, err := client.GetRoom(ctx, &dndbotv1alpha1api.GetRoomRequest{
-			Id: "1",
-		})
-		if err != nil {
-			panic(err)
-
-			return
-		}
-
-		slog.Info("get returned successfully", "getResult", getResult)
-
 		listResult, err := client.ListRooms(ctx, &dndbotv1alpha1api.ListRoomsRequest{})
 		if err != nil {
 			panic(err)
@@ -57,6 +46,17 @@ var testCommand = &cobra.Command{
 		}
 
 		slog.Info("list returned successfully", "listResult", listResult)
+
+		if len(listResult.Rooms) > 0 {
+			getResult, err := client.GetRoom(ctx, &dndbotv1alpha1api.GetRoomRequest{
+				Id: listResult.Rooms[0].Id,
+			})
+			if err != nil {
+				panic(err)
+			}
+
+			slog.Info("get returned successfully", "getResult", getResult)
+		}
 	},
 }
 

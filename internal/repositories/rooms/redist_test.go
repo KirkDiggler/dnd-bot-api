@@ -2,6 +2,7 @@ package rooms
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"go.uber.org/mock/gomock"
@@ -58,6 +59,40 @@ func (s *suiteRedis) TestCreateRoom() {
 
 	err := s.fixture.CreateRoom(s.ctx, room)
 	s.NoError(err)
+}
+
+func (s *suiteRedis) TestUpdateRoom() {
+
+	existingRoom := &entities.Room{
+		ID:          "123",
+		Name:        "not test",
+		Description: "test",
+	}
+
+	existingJson, _ := json.Marshal(existingRoom)
+
+	expectedRoom := &entities.Room{
+		ID:          "123",
+		Name:        "test",
+		Description: "test",
+	}
+
+	s.mockRedisClient.ExpectGet(getRoomKey("123")).SetVal(string(existingJson))
+
+	s.mockRedisClient.ExpectSet(getRoomKey("123"), gomock.Any(), 0).SetVal("OK")
+
+	input := &UpdateInput{
+		Room: &entities.Room{
+			ID:          "123",
+			Name:        "test",
+			Description: "not test",
+		},
+		InputMask: []string{"name"},
+	}
+
+	output, err := s.fixture.UpdateRoom(s.ctx, input)
+	s.NoError(err)
+	s.Equal(expectedRoom, output.Room)
 }
 
 func TestRedis(t *testing.T) {
