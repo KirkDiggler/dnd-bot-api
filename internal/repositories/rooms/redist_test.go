@@ -28,7 +28,7 @@ type suiteRedis struct {
 	fixture *Redis
 }
 
-func (s *suiteRedis) SetupSuite() {
+func (s *suiteRedis) SetupTest() {
 	s.ctx = context.Background()
 	s.mockController = gomock.NewController(s.T())
 	s.mockUUID = mock_uuider.NewMockUUIDGenerator(s.mockController)
@@ -42,7 +42,7 @@ func (s *suiteRedis) SetupSuite() {
 	}
 }
 
-func (s *suiteRedis) TearDownSuite() {
+func (s *suiteRedis) TearDownTest() {
 	s.mockController.Finish()
 }
 
