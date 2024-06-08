@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type PlayerAPIClient interface {
 	ListRaces(ctx context.Context, in *ListRacesRequest, opts ...grpc.CallOption) (*ListRacesResponse, error)
 	ListClasses(ctx context.Context, in *ListClassesRequest, opts ...grpc.CallOption) (*ListClassesResponse, error)
+	GetClass(ctx context.Context, in *GetClassRequest, opts ...grpc.CallOption) (*GetClassResponse, error)
 }
 
 type playerAPIClient struct {
@@ -48,12 +49,22 @@ func (c *playerAPIClient) ListClasses(ctx context.Context, in *ListClassesReques
 	return out, nil
 }
 
+func (c *playerAPIClient) GetClass(ctx context.Context, in *GetClassRequest, opts ...grpc.CallOption) (*GetClassResponse, error) {
+	out := new(GetClassResponse)
+	err := c.cc.Invoke(ctx, "/dnd.bot.api.v1alpha1.PlayerAPI/GetClass", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PlayerAPIServer is the server API for PlayerAPI service.
 // All implementations should embed UnimplementedPlayerAPIServer
 // for forward compatibility
 type PlayerAPIServer interface {
 	ListRaces(context.Context, *ListRacesRequest) (*ListRacesResponse, error)
 	ListClasses(context.Context, *ListClassesRequest) (*ListClassesResponse, error)
+	GetClass(context.Context, *GetClassRequest) (*GetClassResponse, error)
 }
 
 // UnimplementedPlayerAPIServer should be embedded to have forward compatible implementations.
@@ -65,6 +76,9 @@ func (UnimplementedPlayerAPIServer) ListRaces(context.Context, *ListRacesRequest
 }
 func (UnimplementedPlayerAPIServer) ListClasses(context.Context, *ListClassesRequest) (*ListClassesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListClasses not implemented")
+}
+func (UnimplementedPlayerAPIServer) GetClass(context.Context, *GetClassRequest) (*GetClassResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetClass not implemented")
 }
 
 // UnsafePlayerAPIServer may be embedded to opt out of forward compatibility for this service.
@@ -114,6 +128,24 @@ func _PlayerAPI_ListClasses_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PlayerAPI_GetClass_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetClassRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayerAPIServer).GetClass(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dnd.bot.api.v1alpha1.PlayerAPI/GetClass",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayerAPIServer).GetClass(ctx, req.(*GetClassRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PlayerAPI_ServiceDesc is the grpc.ServiceDesc for PlayerAPI service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -128,6 +160,10 @@ var PlayerAPI_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListClasses",
 			Handler:    _PlayerAPI_ListClasses_Handler,
+		},
+		{
+			MethodName: "GetClass",
+			Handler:    _PlayerAPI_GetClass_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

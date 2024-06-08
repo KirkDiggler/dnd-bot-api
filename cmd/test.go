@@ -25,14 +25,25 @@ var testCommand = &cobra.Command{
 
 		client := v1alpha1.NewPlayerAPIClient(conn)
 
-		result, err := client.ListRaces(ctx, &v1alpha1.ListRacesRequest{})
+		result, err := client.ListClasses(ctx, &v1alpha1.ListClassesRequest{})
 		if err != nil {
 			panic(err)
 
 			return
 		}
 
-		slog.Info("create returned successfully: ", "result", result)
+		slog.Info("list classes returned successfully: ", "result", result)
+
+		getResult, err := client.GetClass(ctx, &v1alpha1.GetClassRequest{
+			Id: result.Classes[0].Id,
+		})
+		if err != nil {
+			panic(err)
+
+			return
+		}
+
+		slog.Info("get class returned successfully: ", "result", getResult)
 	},
 }
 
