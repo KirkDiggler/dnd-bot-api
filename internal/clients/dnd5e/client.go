@@ -50,3 +50,12 @@ func (c *client) ListRaces() ([]*entities.Race, error) {
 
 	return apiReferenceItemsToRaces(response), nil
 }
+
+func (c *client) GetClass(key string) (*entities.Class, error) {
+	response, err := c.client.GetClass(key)
+	if err != nil {
+		return nil, err
+	}
+
+	return apiClassToClass(response), nil
+}

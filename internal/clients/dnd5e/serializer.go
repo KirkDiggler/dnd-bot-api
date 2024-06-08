@@ -35,3 +35,11 @@ func apiReferenceItemsToRaces(input []*apiEntities.ReferenceItem) []*entities.Ra
 
 	return output
 }
+
+func apiClassToClass(apiClass *apiEntities.Class) *entities.Class {
+	return &entities.Class{
+		Key:    apiClass.Key,
+		Name:   apiClass.Name,
+		HitDie: apiClass.HitDie,
+	}
+}

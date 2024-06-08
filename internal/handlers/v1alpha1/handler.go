@@ -60,5 +60,49 @@ func racesToProtos(rs []*entities.Race) []*v1alpha1.Race {
 }
 
 func (h *Handler) ListClasses(ctx context.Context, req *v1alpha1.ListClassesRequest) (*v1alpha1.ListClassesResponse, error) {
-	return nil, errors.New("not implemented")
+	result, err := h.client.ListClasses()
+	if err != nil {
+		return nil, fmt.Errorf("error in client.ListClasses: %w", err)
+	}
+
+	return &v1alpha1.ListClassesResponse{
+		Classes: classesToProtos(result),
+	}, nil
+}
+
+func classToProto(c *entities.Class) *v1alpha1.Class {
+	return &v1alpha1.Class{
+		Id:     c.Key,
+		Name:   c.Name,
+		HitDie: int32(c.HitDie),
+	}
+}
+
+func classesToProtos(cs []*entities.Class) []*v1alpha1.Class {
+	out := make([]*v1alpha1.Class, len(cs))
+	for i, c := range cs {
+		out[i] = classToProto(c)
+	}
+
+	return out
+
+}
+
+func (h *Handler) GetClass(ctx context.Context, req *v1alpha1.GetClassRequest) (*v1alpha1.GetClassResponse, error) {
+	if req == nil {
+		return nil, errors.New("req is required")
+	}
+
+	if req.Id == "" {
+		return nil, errors.New("req.Id is required")
+	}
+
+	result, err := h.client.GetClass(req.Id)
+	if err != nil {
+		return nil, fmt.Errorf("error in client.GetClass: %w", err)
+	}
+
+	return &v1alpha1.GetClassResponse{
+		Class: classToProto(result),
+	}, nil
 }

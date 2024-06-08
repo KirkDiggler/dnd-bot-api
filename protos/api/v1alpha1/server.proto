@@ -7,6 +7,7 @@ option go_package = "dnd/bot/api/v1alpha1;dndbotv1alpha1api";
 service PlayerAPI{
   rpc ListRaces(ListRacesRequest) returns (ListRacesResponse);
   rpc ListClasses(ListClassesRequest) returns (ListClassesResponse);
+  rpc GetClass(GetClassRequest) returns (GetClassResponse);
 }
 
 message ListRacesRequest{}
@@ -28,5 +29,14 @@ message ListClassesResponse{
 
 message Class {
   string id = 1;
-  string description = 2;
+  string name = 2;
+  int32 hit_die = 3;
+}
+
+message GetClassRequest{
+  string id = 1;
+}
+
+message GetClassResponse{
+  Class class = 1;
 }
