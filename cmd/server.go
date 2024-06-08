@@ -2,16 +2,18 @@ package cmd
 
 import (
 	"context"
-	"github.com/KirkDiggler/dnd-bot-api/internal/handlers/v1alpha1"
-	"github.com/KirkDiggler/dnd-bot-api/internal/repositories/rooms"
-	dndbotv1alpha1api "github.com/KirkDiggler/dnd-bot-api/protos/gen-external/go/api/admin"
-	"github.com/redis/go-redis/v9"
-	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
 	"log"
 	"log/slog"
 	"net"
+	"net/http"
 	"os"
+
+	"github.com/KirkDiggler/dnd-bot-api/internal/clients/dnd5e"
+
+	"github.com/KirkDiggler/dnd-bot-api/internal/handlers/v1alpha1"
+	dndbotv1alpha1api "github.com/KirkDiggler/dnd-bot-api/protos/gen/go/api/v1alpha1"
+	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 )
 
 var serverCommand = &cobra.Command{
@@ -29,25 +31,21 @@ var serverCommand = &cobra.Command{
 		srv := grpc.NewServer()
 		logger.Info("server listening")
 
-		redisClient := redis.NewUniversalClient(&redis.UniversalOptions{
-			Addrs: []string{"localhost:6379"},
-		})
-
-		roomRepo, err := rooms.NewRedis(&rooms.RedisConfig{
-			Client: redisClient,
+		dnd5eClient, err := dnd5e.New(&dnd5e.Config{
+			HttpClient: http.DefaultClient,
 		})
 		if err != nil {
-			log.Fatal(ctx, "error in rooms.NewRedis", err)
+			panic(err)
 		}
 
 		hander, err := v1alpha1.NewHandler(&v1alpha1.HandlerConfig{
-			RoomRepo: roomRepo,
+			Client: dnd5eClient,
 		})
 		if err != nil {
 			log.Fatal(ctx, "error in v1alpha1.NewHandler", err)
 		}
 
-		dndbotv1alpha1api.RegisterAminAPIServer(srv, hander)
+		dndbotv1alpha1api.RegisterPlayerAPIServer(srv, hander)
 		err = srv.Serve(lis)
 		if err != nil {
 			log.Fatal(ctx, "error in srv.Serve", err)

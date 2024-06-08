@@ -4,7 +4,8 @@ import (
 	"context"
 	"log/slog"
 
-	dndbotv1alpha1api "github.com/KirkDiggler/dnd-bot-api/protos/gen-external/go/api/admin"
+	v1alpha1 "github.com/KirkDiggler/dnd-bot-api/protos/gen/go/api/v1alpha1"
+
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
@@ -22,14 +23,9 @@ var testCommand = &cobra.Command{
 
 		defer conn.Close()
 
-		client := dndbotv1alpha1api.NewAminAPIClient(conn)
+		client := v1alpha1.NewPlayerAPIClient(conn)
 
-		result, err := client.CreateRoom(ctx, &dndbotv1alpha1api.CreateRoomRequest{
-			Room: &dndbotv1alpha1api.Room{
-				Name:        "Google",
-				Description: "Googlr like uuids",
-			},
-		})
+		result, err := client.ListRaces(ctx, &v1alpha1.ListRacesRequest{})
 		if err != nil {
 			panic(err)
 
@@ -37,39 +33,6 @@ var testCommand = &cobra.Command{
 		}
 
 		slog.Info("create returned successfully: ", "result", result)
-
-		listResult, err := client.ListRooms(ctx, &dndbotv1alpha1api.ListRoomsRequest{})
-		if err != nil {
-			panic(err)
-
-			return
-		}
-
-		slog.Info("list returned successfully", "listResult", listResult)
-
-		if len(listResult.Rooms) > 0 {
-			getResult, err := client.GetRoom(ctx, &dndbotv1alpha1api.GetRoomRequest{
-				Id: listResult.Rooms[0].Id,
-			})
-			if err != nil {
-				panic(err)
-			}
-
-			slog.Info("get returned successfully", "getResult", getResult)
-
-			updateResult, err := client.UpdateRoom(ctx, &dndbotv1alpha1api.UpdateRoomRequest{
-				Room: &dndbotv1alpha1api.Room{
-					Id:          getResult.Room.Id,
-					Name:        "Google",
-					Description: "Google like uuids",
-				},
-			})
-			if err != nil {
-				panic(err)
-			}
-
-			slog.Info("update returned successfully", "updateResult", updateResult)
-		}
 	},
 }
 
