@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package dnd.bot.api.v1alpha1;
+
+option go_package = "dnd/bot/api/v1alpha1;dndbotv1alpha1api";
+
+service PlayerAPI{
+  rpc ListRaces(ListRacesRequest) returns (ListRacesResponse);
+  rpc ListClasses(ListClassesRequest) returns (ListClassesResponse);
+}
+
+message ListRacesRequest{}
+
+message ListRacesResponse{
+  repeated Race races = 1;
+}
+
+message Race {
+  string id = 1;
+  string description = 2;
+}
+
+message ListClassesRequest{}
+
+message ListClassesResponse{
+  repeated Class classes = 1;
+}
+
+message Class {
+  string id = 1;
+  string description = 2;
+}
